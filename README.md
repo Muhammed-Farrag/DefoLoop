@@ -76,23 +76,22 @@ A three-engineer team is building it for the [Meta Global AI Developer Hackathon
 
 The architecture below is **proposed**. See [PRD §5](docs/prd.md#5-ai-architecture-and-honest-capability-boundaries) for the full design and capability boundaries.
 
-```mermaid
+
 flowchart TD
-    A[Product image] --> B[DINOv3 patch features<br/><i>frozen</i>]
-    B --> C[Anomaly scoring vs. normal feature bank]
-    C --> D[Heatmap + thresholded mask]
-    D --> E[Optional SAM refinement]
-    E --> F[Inspector dashboard]
+    A["Product image"] --> B["Frozen DINOv3 patch features"]
+    B --> C["Anomaly scoring vs normal feature bank"]
+    C --> D["Heatmap and thresholded mask"]
+    D --> E["Optional SAM refinement"]
+    E --> F["Inspector dashboard"]
     D --> F
-    F --> G{Human review}
-    G -->|Approve / correct| H[(Versioned feedback store)]
-    H --> I[Batch adaptation:<br/>lightweight patch classifier]
-    I --> J[Candidate model v1]
-    J --> K[Sealed holdout evaluation]
-    K --> L{Quality gate}
-    L -->|Pass| M[Promote v1]
-    L -->|Fail| N[Keep v0]
-```
+    F --> G{"Human review"}
+    G -->|"Approve or correct"| H[("Versioned feedback store")]
+    H --> I["Batch adaptation: lightweight patch classifier"]
+    I --> J["Candidate model v1"]
+    J --> K["Sealed holdout evaluation"]
+    K --> L{"Quality gate"}
+    L -->|"Pass"| M["Promote v1"]
+    L -->|"Fail"| N["Keep v0"]
 
 ## Evaluation
 
