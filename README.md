@@ -72,11 +72,12 @@ A three-engineer team is building it for the [Meta Global AI Developer Hackathon
 5. **Evaluate**: v0 and v1 are compared on the same sealed holdout set.
 6. **Promote or roll back**: a new version is promoted only if it passes predefined acceptance criteria.
 
+
 ## Architecture
 
 The architecture below is **proposed**. See [PRD §5](docs/prd.md#5-ai-architecture-and-honest-capability-boundaries) for the full design and capability boundaries.
 
-
+```mermaid
 flowchart TD
     A["Product image"] --> B["Frozen DINOv3 patch features"]
     B --> C["Anomaly scoring vs normal feature bank"]
@@ -92,6 +93,8 @@ flowchart TD
     K --> L{"Quality gate"}
     L -->|"Pass"| M["Promote v1"]
     L -->|"Fail"| N["Keep v0"]
+```
+
 
 ## Evaluation
 
