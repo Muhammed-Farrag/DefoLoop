@@ -1,4 +1,4 @@
-a<p align="center">
+<p align="center">
   <img src="assets/DEF_LOOP_Meteorite_Spiral_Logo.png" alt="DefoLoop metallic spiral wordmark" width="600">
 </p>
 
