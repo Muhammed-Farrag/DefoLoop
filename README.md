@@ -1,191 +1,193 @@
-<p align="center">
-  <img src="assets/DEF_LOOP_Meteorite_Spiral_Logo.png" alt="DefoLoop metallic spiral wordmark" width="600">
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="assets/logo-light.png">
+  <img src="assets/logo-light.png" alt="DefoLoop" width="420">
+</picture>
+
+<h3>See the defect. Correct the AI. Prove the improvement.</h3>
+
+<p>Human-in-the-loop visual quality inspection for manufacturing.<br>
+Inspector corrections become versioned training signal, and every model update is measured on unseen images.</p>
+
+<p>
+  <a href="https://cerebralvalley.ai/e/meta-ai-developer-hackathon"><img alt="Meta AI Developer Hackathon" src="https://img.shields.io/badge/Meta%20AI-Developer%20Hackathon-0866FF?style=flat-square&logo=meta&logoColor=white"></a>
+  <img alt="Status: In development" src="https://img.shields.io/badge/status-in%20development-D3A24C?style=flat-square">
+  <a href="docs/prd.md"><img alt="PRD v0.1" src="https://img.shields.io/badge/PRD-v0.1-233249?style=flat-square"></a>
+  <img alt="License: TBD" src="https://img.shields.io/badge/license-TBD-lightgrey?style=flat-square">
+  <a href="https://github.com/Muhammed-Farrag/DefoLoop/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/Muhammed-Farrag/DefoLoop?style=flat-square&color=6487B9"></a>
 </p>
 
-<p align="center">
-  <strong>See the defect. Correct the AI. Prove the improvement.</strong><br>
-  Human-in-the-loop visual quality inspection for manufacturing.
+<p>
+  <a href="#overview">Overview</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#evaluation">Evaluation</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#roadmap">Roadmap</a> •
+  <a href="docs/prd.md">Docs</a>
 </p>
 
-<p align="center">
-  <a href="https://cerebralvalley.ai/e/meta-ai-developer-hackathon"><img alt="Meta AI Hackathon" src="https://img.shields.io/badge/Meta%20AI-Hackathon-0866FF?style=flat-square"></a>
-  <img alt="Project status: In Development" src="https://img.shields.io/badge/Status-In%20Development-D3A24C?style=flat-square">
-  <img alt="Computer Vision" src="https://img.shields.io/badge/Computer-Vision-233249?style=flat-square">
-  <img alt="Human in the Loop" src="https://img.shields.io/badge/Human--in--the--Loop-Feedback-6487B9?style=flat-square">
-</p>
-
-<p align="center">
-  <a href="#overview">Overview</a> ·
-  <a href="#inspection-output">Inspection Output</a> ·
-  <a href="#architecture">Architecture</a> ·
-  <a href="#feedback-loop">Feedback Loop</a> ·
-  <a href="#evaluation">Evaluation</a> ·
-  <a href="#roadmap">Roadmap</a>
-</p>
+</div>
 
 ---
+
+> [!NOTE]
+> **DefoLoop is a research prototype under active development.** This README describes the planned MVP; nothing below is a claim of a trained or deployed system. We have not published any performance results yet.
 
 ## Overview
 
-**DefoLoop** is an AI-powered visual quality inspection project designed to detect manufacturing anomalies, identify their locations, and help inspectors classify and correct defects. Its central idea is simple: **human corrections should become verified learning signals, and their impact should be measured on unseen data.**
+**DefoLoop** detects anomalies in manufacturing images, shows where they are at the pixel level, and lets a human inspector approve or correct each prediction. The corrections feed a controlled, versioned model update. The baseline and updated models are then compared on the **same sealed holdout set**, so any improvement is measured rather than assumed.
 
-Built by a three-engineer team for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon), DefoLoop explores how Meta AI technologies can support an inspection workflow that keeps people in control of quality decisions.
+A three-engineer team is building it for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon) (26 Oct – 4 Nov 2026).
 
-> **Project status:** Research prototype in development. The capabilities and workflows below describe the intended MVP unless explicitly identified as implemented. There are no published performance claims yet.
+**Research question:** *Can human-verified corrections reduce missed defects and improve defect localization on previously unseen product images, without an unacceptable increase in false alarms?*
 
-## The Problem
+### Key Features
 
-Manual visual inspection can be slow and inconsistent. Automated systems can help, but they may miss subtle defects, flag acceptable products, or outline defective regions inaccurately. A corrected prediction is valuable only if the system can retain that feedback, adapt responsibly, and demonstrate a measurable improvement.
+| | Capability | Planned behavior |
+| --- | --- | --- |
+| 🔍 | **Detect** | Image-level anomaly score with a calibrated decision threshold |
+| 🗺️ | **Localize** | Continuous pixel-level anomaly map and binary defect mask |
+| 🏷️ | **Classify** | Provisional defect label, or `unknown defect` when the evidence is weak |
+| ✍️ | **Review** | Approve, reject, relabel, paint or erase masks, and flag misses and false alarms |
+| 🔁 | **Improve** | Train a lightweight adapter on verified corrections and produce an immutable new model version |
+| 📊 | **Prove** | Paired v0 vs. v1 metrics on untouched holdout images, with denominators shown |
 
-**Our research question:** *Can human-verified corrections reduce missed defects and improve defect localization on previously unseen product images without an unacceptable increase in false alarms?*
+## How It Works
 
-## What DefoLoop Aims to Do
-
-| Capability | Expected behavior |
-| --- | --- |
-| **Detect** | Estimate whether an image contains an anomaly. |
-| **Localize** | Produce a pixel-level anomaly score map and predicted defect mask. |
-| **Classify** | Suggest a defect category when supported by labeled examples; otherwise flag it as unknown. |
-| **Review** | Let inspectors approve, reject, relabel, or redraw AI predictions. |
-| **Improve** | Use verified corrections in a controlled model-adaptation process. |
-| **Prove** | Compare baseline and updated models on the same held-out test set. |
-
-## Inspection Output
-
-The target inspection interface is organized around four views:
+### Four-panel inspection view
 
 | Input Image | Anomaly Map | Ground Truth | Segmentation Result |
 | --- | --- | --- | --- |
-| Original product photo | Continuous pixel-level anomaly scores | Benchmark annotation or inspector-verified mask | Predicted defect region and optional threshold contours |
+| Original full-resolution image | Continuous heatmap with a threshold slider | Benchmark mask or inspector-verified correction | Thresholded predicted mask, area, class, and model version |
 
-**Important:** A model prediction is **not** ground truth. On an unlabeled production image, ground truth should appear as *Awaiting human verification* until a trusted annotation exists.
+> [!IMPORTANT]
+> A model prediction is **never** ground truth. Images without a trusted annotation show *Awaiting verification*; ground truth is never synthesized.
 
-The interface will also support a correction workflow in which inspectors can edit a mask, change a label, mark a false positive, or add a missed defect.
+### Feedback loop
+
+1. **Inspect**: model v0 predicts an anomaly score, a heatmap, a mask, and a provisional label.
+2. **Verify**: the inspector confirms the result or corrects the mask and label.
+3. **Record**: the source image, original prediction, corrected mask, review type, and model version are stored immutably.
+4. **Adapt**: an explicit batch job trains a lightweight classifier on approved feedback. The foundation model stays frozen.
+5. **Evaluate**: v0 and v1 are compared on the same sealed holdout set.
+6. **Promote or roll back**: a new version is promoted only if it passes predefined acceptance criteria.
 
 ## Architecture
 
-The following architecture is **proposed**, not a claim that every component is already implemented:
+The architecture below is **proposed**. See [PRD §5](docs/prd.md#5-ai-architecture-and-honest-capability-boundaries) for the full design and capability boundaries.
 
 ```mermaid
 flowchart TD
-    A[Product image] --> B[Visual feature extraction]
-    B --> C[Anomaly scoring and localization]
-    C --> D[Heatmap and initial mask]
-    D --> E[Optional mask refinement]
+    A[Product image] --> B[DINOv3 patch features<br/><i>frozen</i>]
+    B --> C[Anomaly scoring vs. normal feature bank]
+    C --> D[Heatmap + thresholded mask]
+    D --> E[Optional SAM refinement]
     E --> F[Inspector dashboard]
-    C --> F
+    D --> F
     F --> G{Human review}
-    G -->|Approve or correct| H[Verified feedback store]
-    H --> I[Controlled adaptation / training]
-    I --> J[Candidate model version]
-    J --> K[Held-out evaluation]
+    G -->|Approve / correct| H[(Versioned feedback store)]
+    H --> I[Batch adaptation:<br/>lightweight patch classifier]
+    I --> J[Candidate model v1]
+    J --> K[Sealed holdout evaluation]
     K --> L{Quality gate}
-    L -->|Pass| M[Promote model]
-    L -->|Fail| N[Keep baseline]
+    L -->|Pass| M[Promote v1]
+    L -->|Fail| N[Keep v0]
 ```
-
-## Feedback Loop
-
-1. **Inspect:** The current model predicts an anomaly score, location, and any supported defect class.
-2. **Verify:** The inspector confirms the result or corrects the mask and label.
-3. **Record:** The system stores the source image, original prediction, verified annotation, correction type, and model version.
-4. **Adapt:** A controlled training job updates an adaptation component using approved feedback. Corrections do **not** instantly retrain the foundation model.
-5. **Evaluate:** The baseline and candidate model are compared on the same untouched test set.
-6. **Promote or roll back:** The new model is used only when it meets predefined acceptance criteria.
-
-The goal is a traceable learning system, not a demo that simply saves edited labels.
 
 ## Evaluation
 
-We will separate **training data**, **feedback/adaptation data**, **validation data**, and a **final untouched test set**. We will avoid using final test images to choose thresholds or tune the feedback mechanism.
+The data is split into **train / calibration / feedback / holdout** sets, and the splits are frozen and hashed before any model tuning. Final test images are never used to choose thresholds or feedback examples.
 
-Planned measures include:
+| Metric | What it tells us |
+| --- | --- |
+| **Defect recall** (TP / all defective) | How many real defects are caught |
+| **Missed-defect rate** (FN / all defective) | How many real defects slip through |
+| **False-positive rate** (FP / all normal) | How often good products are flagged |
+| **Pixel IoU / Dice / AUROC** | How well predicted masks match verified masks |
+| **Latency** | Whether the workflow is usable in practice |
 
-- **Defect recall / missed-defect rate:** How often actual defects are detected or missed.
-- **False-positive rate:** How often good products are incorrectly flagged.
-- **Pixel-level IoU or Dice:** How closely predicted masks match verified masks.
-- **Classification F1:** How accurately supported defect types are identified.
-- **Latency and inspector time:** Whether the workflow is usable in practice.
-
-We will report measured results, including negative results and trade-offs, rather than assume feedback always helps.
+We will report raw counts with every metric, include uncertainty estimates where the sample size allows, and publish negative results as well as positive ones. The full protocol is in [PRD §8](docs/prd.md#8-experimental-protocol--core-differentiation).
 
 ## Datasets
 
-| Dataset | Intended use | Licensing / annotation note |
+| Dataset | Role | License |
 | --- | --- | --- |
-| [VisA](https://registry.opendata.aws/visa/) | Candidate primary benchmark for pixel-level anomaly detection | Image- and pixel-level annotations; CC BY 4.0 |
-| [MVTec AD](https://www.mvtec.com/research-teaching/datasets/mvtec-ad) | Research baseline and visual comparison | Pixel-precise defect annotations; **noncommercial** CC BY-NC-SA 4.0 |
-| [Iron Ore Conveyor Dataset](https://data.mendeley.com/datasets/s25x2bnshz/1) | Optional industrial conveyor scenario | Primarily video/frames with YOLO and partial annotations; CC BY 4.0 |
+| [VisA](https://registry.opendata.aws/visa/) | **Primary**: one PCB category with pixel-level masks | CC BY 4.0 |
+| [MVTec AD](https://www.mvtec.com/research-teaching/datasets/mvtec-ad) | Optional reference benchmark | CC BY-NC-SA 4.0 (**noncommercial**) |
+| [Iron Ore Conveyor](https://data.mendeley.com/datasets/s25x2bnshz/1) | Stretch goal: video / domain-shift demo | CC BY 4.0 |
 
-We intend to start with **one product category** before expanding. The datasets are research resources and are not redistributed in this repository. Usage remains subject to each dataset's license.
+Datasets are **not redistributed** in this repository. Each one is subject to its own license.
 
-## Technology Choices — Under Review
+## Tech Stack
 
-The team is finalizing the stack based on model quality, compute requirements, development speed, and integration feasibility.
+The stack is proposed and will be finalized during the hackathon (see [PRD §7](docs/prd.md#7-minimal-api-and-data-contracts)).
 
-| Layer | Current direction | Decision |
-| --- | --- | --- |
-| Visual representation / anomaly detection | Evaluate Meta **DINOv3** features with a lightweight anomaly method | Not finalized |
-| Segmentation | Evaluate Meta **Segment Anything** for optional mask refinement | Not finalized |
-| Defect classification / explanation | Compare supervised classification and optional multimodal assistance | Not finalized |
-| Model adaptation | Versioned lightweight learner trained on verified feedback | Design in progress |
-| Frontend and annotation editor | Browser-based inspection dashboard | Framework TBD |
-| Backend API and storage | Inference, annotation persistence, and training orchestration | Framework/services TBD |
-| Experiment tracking | Reproducible evaluations and baseline-to-candidate comparisons | Tooling TBD |
-
-Specific model versions and their licenses, access requirements, and resource needs will be verified before integration. This section will be updated when our engineering decisions are final.
-
-## Deployment — Free-First Approach
-
-We aim to publish a working demo **within free tiers or available hackathon credits where practical**, while keeping the system reproducible locally.
-
-- **Web interface:** Explore free static/frontend hosting.
-- **API and storage:** Select services after confirming feature requirements and quotas.
-- **Model inference:** Benchmark memory and latency first. Large vision models may require GPU resources or a paid endpoint; free CPU hosting is not assumed sufficient.
-- **Training:** Keep experiments separate from the public demo when necessary.
-- **Fallback:** If sustained public inference cannot be hosted affordably, provide a transparent recorded demo and reproducible evaluation instructions rather than simulate predictions.
-
-**Hosting provider, public demo URL, and operating budget: To be decided.**
+| Layer | Choice |
+| --- | --- |
+| Anomaly features | Meta **DINOv3** (frozen) with PatchCore-style nearest-neighbor scoring |
+| Mask refinement | Meta **SAM 3.1** (optional, gated by measured improvement) |
+| Provisional labels | Meta **Muse Spark** with a closed vocabulary (assistive only, never ground truth) |
+| Adaptation | Lightweight patch classifier (PyTorch / scikit-learn) |
+| Backend | Python, FastAPI, SQLite |
+| Frontend | React / Next.js with a canvas mask editor |
 
 ## Roadmap
 
-- [ ] Finalize the PRD, technical architecture, and stack decisions.
-- [ ] Select a product category and establish reproducible dataset splits.
-- [ ] Produce baseline anomaly scores and real heatmaps.
-- [ ] Generate pixel-level masks and build the four-panel inspection view.
-- [ ] Implement inspector annotation and correction tools.
-- [ ] Persist approved feedback and version model outputs.
-- [ ] Implement feedback-driven adaptation.
-- [ ] Evaluate before/after performance on untouched images.
-- [ ] Deploy a working demo and publish measured results.
-- [ ] Prepare the hackathon walkthrough and documentation.
+- [x] Product requirements document ([v0.1](docs/prd.md))
+- [ ] Dataset manifest and frozen, hashed splits
+- [ ] Baseline DINOv3 heatmaps and pixel masks
+- [ ] Four-panel inspection view
+- [ ] Mask correction editor with save and reload
+- [ ] Versioned feedback store and batch adaptation job
+- [ ] Sealed v0 / v1 holdout evaluation
+- [ ] Before/after dashboard and recorded demo
+- [ ] SAM / Muse Spark integrations (stretch)
 
-## Team
+## Getting Started
 
-DefoLoop is built by **three engineers** sharing responsibility for technical leadership, computer vision and experiments, and the full-stack inspection experience.
+Setup instructions will be added once the first implementation and pinned dependencies are committed. We won't publish commands we haven't tested.
 
-## Running the Project
+## Project Structure
 
-Installation steps and verified commands will be published once the initial implementation and dependency versions are committed. We will not publish setup commands that have not been tested.
+```text
+DefoLoop/
+├── assets/       # Logo and brand assets
+├── docs/
+│   └── prd.md    # Product requirements document
+└── README.md
+```
 
-## References
+## Contributing
 
-- [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon)
-- [Meta DINOv3](https://ai.meta.com/research/dinov3/)
-- [Meta Segment Anything](https://ai.meta.com/sam/)
-- [VisA Dataset](https://registry.opendata.aws/visa/)
-- [MVTec AD Dataset](https://www.mvtec.com/research-teaching/datasets/mvtec-ad)
-- [Iron Ore Conveyor Dataset](https://data.mendeley.com/datasets/s25x2bnshz/1)
-- [InspectFlow AI](https://github.com/longlivewama/inspectflow-ai) — related project used for conceptual inspiration, not copied implementation.
+DefoLoop is developed by a three-person team:
 
-## License and Safety
+- `main` is protected. Work on feature branches and merge through reviewed pull requests.
+- Don't commit dataset images, model weights, or API keys.
+- API and evaluation JSON schemas are frozen. Any change to them needs team review.
 
-The source-code license has **not yet been selected**. Dataset and model licenses apply separately. This is a research prototype and must not be the sole basis for production-line acceptance or rejection decisions.
+## Acknowledgements
+
+- [Meta DINOv3](https://ai.meta.com/blog/dinov3-self-supervised-vision-model/), [Segment Anything](https://ai.meta.com/sam/), and the [Meta Model API](https://dev.meta.ai/docs/sam/overview)
+- [VisA](https://github.com/amazon-science/spot-diff), [MVTec AD](https://www.mvtec.com/research-teaching/datasets/mvtec-ad), and the [Mendeley Iron Ore Conveyor](https://data.mendeley.com/datasets/s25x2bnshz/1) dataset authors
+- [InspectFlow AI](https://github.com/longlivewama/inspectflow-ai), used as an architectural reference only. No code was copied.
+
+## License
+
+The source-code license has **not been selected yet**. Dataset and model licenses (including Meta's DINOv3 License) apply separately.
+
+> [!WARNING]
+> DefoLoop is a research prototype. It must not be the sole basis for production-line accept or reject decisions.
 
 ---
 
-<p align="center">
-  <img src="assets/Spiraling_Metallic_O-Ring_Emblem.png" alt="DefoLoop spiral emblem" width="135"><br>
-  <strong>DefoLoop</strong><br>
-  <em>See the defect. Correct the AI. Prove the improvement.</em>
-</p>
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
+    <img src="assets/logo-light.png" alt="DefoLoop" width="120">
+  </picture>
+  <br>
+  <sub>Built for the Meta Global AI Developer Hackathon 2026</sub>
+</div>
