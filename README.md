@@ -46,14 +46,14 @@ A three-engineer team is building it for the [Meta Global AI Developer Hackathon
 
 ### Key Features
 
-| | Capability | Planned behavior |
-| --- | --- | --- |
-| 🔍 | **Detect** | Image-level anomaly score with a calibrated decision threshold |
-| 🗺️ | **Localize** | Continuous pixel-level anomaly map and binary defect mask |
-| 🏷️ | **Classify** | Provisional defect label, or `unknown defect` when the evidence is weak |
-| ✍️ | **Review** | Approve, reject, relabel, paint or erase masks, and flag misses and false alarms |
-| 🔁 | **Improve** | Train a lightweight adapter on verified corrections and produce an immutable new model version |
-| 📊 | **Prove** | Paired v0 vs. v1 metrics on untouched holdout images, with denominators shown |
+| Capability | Planned behavior |
+| --- | --- |
+| **Detect** | Image-level anomaly score with a calibrated decision threshold |
+| **Localize** | Continuous pixel-level anomaly map and binary defect mask |
+| **Classify** | Provisional defect label, or `unknown defect` when the evidence is weak |
+| **Review** | Approve, reject, relabel, paint or erase masks, and flag misses and false alarms |
+| **Improve** | Train a lightweight adapter on verified corrections and produce an immutable new model version |
+| **Prove** | Paired v0 vs. v1 metrics on untouched holdout images, with denominators shown |
 
 ## How It Works
 
@@ -62,9 +62,6 @@ A three-engineer team is building it for the [Meta Global AI Developer Hackathon
 | Input Image | Anomaly Map | Ground Truth | Segmentation Result |
 | --- | --- | --- | --- |
 | Original full-resolution image | Continuous heatmap with a threshold slider | Benchmark mask or inspector-verified correction | Thresholded predicted mask, area, class, and model version |
-
-> [!IMPORTANT]
-> A model prediction is **never** ground truth. Images without a trusted annotation show *Awaiting verification*; ground truth is never synthesized.
 
 ### Feedback loop
 
@@ -177,9 +174,6 @@ DefoLoop is developed by a three-person team:
 ## License
 
 The source-code license has **not been selected yet**. Dataset and model licenses (including Meta's DINOv3 License) apply separately.
-
-> [!WARNING]
-> DefoLoop is a research prototype. It must not be the sole basis for production-line accept or reject decisions.
 
 ---
 
