@@ -138,8 +138,8 @@ The stack is proposed and will be finalized during the hackathon (see [PRD §7](
 - [x] Product requirements document ([v0.1](docs/prd.md))
 - [ ] Dataset manifest and frozen, hashed splits
 - [ ] Baseline DINOv3 heatmaps and pixel masks
-- [ ] Four-panel inspection view
-- [ ] Mask correction editor with save and reload
+- [x] Four-panel inspection view (UI; awaiting model output)
+- [x] Mask correction editor with save and reload (local store)
 - [ ] Versioned feedback store and batch adaptation job
 - [ ] Sealed v0 / v1 holdout evaluation
 - [ ] Before/after dashboard and recorded demo
@@ -147,7 +147,15 @@ The stack is proposed and will be finalized during the hackathon (see [PRD §7](
 
 ## Getting Started
 
-Setup instructions will be added once the first implementation and pinned dependencies are committed. We won't publish commands we haven't tested.
+The model and backend are not committed yet. The web UI runs on its own with a local demo store (no inference):
+
+```bash
+cd web
+pnpm install
+pnpm dev
+```
+
+See [`web/README.md`](web/README.md) for data sources, sample images, and keyboard shortcuts.
 
 ## Project Structure
 
@@ -156,6 +164,10 @@ DefoLoop/
 ├── assets/       # Logo and brand assets
 ├── docs/
 │   └── prd.md    # Product requirements document
+├── web/          # Next.js inspection UI
+│   ├── app/          # Routes: dashboard, inspect, review, mask-review, learning
+│   ├── components/   # Sidebar, image panels, mask editor, status, queue, metrics
+│   └── lib/          # API types and clients, rendering, mask rasters
 └── README.md
 ```
 
