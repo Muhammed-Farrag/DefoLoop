@@ -1,0 +1,12 @@
+{
+  "samples": [
+    {
+      "id": "metal_nut_scratch_000",
+      "image": "metal_nut_scratch_000/image.png",
+      "gt_mask": "metal_nut_scratch_000/gt.png",
+      "label": "scratch",
+      "dataset": "MVTec AD metal_nut",
+      "license": "CC BY-NC-SA 4.0"
+    }
+  ]
+}
